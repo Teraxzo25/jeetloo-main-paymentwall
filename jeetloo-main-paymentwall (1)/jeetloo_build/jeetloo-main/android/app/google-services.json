@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "762073303183",
+    "project_id": "jeetloo",
+    "storage_bucket": "jeetloo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762073303183:android:6e85ef9cac233d09cac8fa",
+        "android_client_info": {
+          "package_name": "com.example.jeetloo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3FlStZB3oBCvoL6DPEnWWQgZctKvw5sw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
