@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
-          flutter pub get
+          flutter pub upgrade
 
       - name: Build APK
         run: |
