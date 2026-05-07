@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:jeetloo/Screens/paymentwall_service.dart';
 
-// ─────────────────────────────────────────────────────────────
-// PAYMENTWALL WEBVIEW SCREEN
-// Opens the Paymentwall payment page inside the app
-// Place in: lib/Screens/paymentwall_webview.dart
-// ─────────────────────────────────────────────────────────────
-
 class PaymentwallWebView extends StatefulWidget {
   final String paymentUrl;
   final int coins;
@@ -27,6 +21,8 @@ class PaymentwallWebView extends StatefulWidget {
 class _PaymentwallWebViewState extends State<PaymentwallWebView> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -35,10 +31,17 @@ class _PaymentwallWebViewState extends State<PaymentwallWebView> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() => _isLoading = true),
+          onPageStarted: (_) => setState(() {
+            _isLoading = true;
+            _hasError = false;
+          }),
           onPageFinished: (_) => setState(() => _isLoading = false),
+          onWebResourceError: (error) => setState(() {
+            _isLoading = false;
+            _hasError = true;
+            _errorMessage = error.description;
+          }),
           onNavigationRequest: (request) {
-            // Detect success or failure redirect
             if (request.url.contains('payment-success')) {
               Navigator.pop(context, 'success');
               return NavigationDecision.prevent;
@@ -76,6 +79,40 @@ class _PaymentwallWebViewState extends State<PaymentwallWebView> {
           if (_isLoading)
             const Center(
               child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+            ),
+          if (_hasError)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Failed to load payment page',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _errorMessage,
+                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() => _hasError = false);
+                        _controller.reload();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                      ),
+                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),

@@ -32,13 +32,16 @@ class PaymentwallService {
     final amount = amountUsd.toStringAsFixed(2);
     final productName = '$coins J Coins - JeetLoo';
 
+    // Fallback if user signed up without email (e.g. phone auth)
+    final email = (userEmail.isEmpty) ? '$userId@jeetloo.app' : userEmail;
+
     final params = <String, String>{
       'ag_external_id': orderId,
       'ag_name': productName,
       'ag_type': 'fixed',
       'amount': amount,
       'currencyCode': 'USD',
-      'email': userEmail,
+      'email': email,
       'failure_url': 'https://jeetlooapp.wixsite.com/jeetlo/payment-failure',
       'key': _projectKey,
       'success_url': 'https://jeetlooapp.wixsite.com/jeetlo/payment-success',
