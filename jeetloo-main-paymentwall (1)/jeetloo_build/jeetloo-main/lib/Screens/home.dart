@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:jeetloo/Candle_System/candle_predciation.dart';
 import 'package:jeetloo/Screens/payment.dart';
+import 'package:jeetloo/Screens/admin_panel.dart';
 import 'package:jeetloo/authentication/login.dart';
 import 'package:jeetloo/Screens/gurrantedgift.dart';
 import 'package:jeetloo/Screens/luckydraw.dart';
@@ -1022,6 +1023,16 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
           Colors.blue, // Color for payment
           PaymentScreen(), // Navigate to PaymentScreen
         ),
+        // Admin panel — only visible to admin
+        if (FirebaseAuth.instance.currentUser?.email?.toLowerCase() ==
+            'jeetlooapp@gmail.com')
+          _buildQuickActionButton(
+            Icons.admin_panel_settings,
+            'Admin',
+            'Manage',
+            Colors.red,
+            AdminPanel(),
+          ),
         // _buildQuickActionButton(
         //   Icons.card_giftcard,
         //   'Guaranteed',
