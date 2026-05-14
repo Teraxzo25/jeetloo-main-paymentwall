@@ -151,7 +151,7 @@ class _DepositsTab extends StatelessWidget {
       stream: FirebaseFirestore.instance
           .collection('manual_deposits')
           .where('status', isEqualTo: status)
-          .orderBy('createdAt', descending: true)
+          
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -473,7 +473,7 @@ class _WithdrawalsTab extends StatelessWidget {
       stream: FirebaseFirestore.instance
           .collection('withdrawal_requests')
           .where('status', isEqualTo: status)
-          .orderBy('createdAt', descending: true)
+          
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
