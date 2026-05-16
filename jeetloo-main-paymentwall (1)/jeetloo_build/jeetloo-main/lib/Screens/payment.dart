@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jeetloo/Screens/paymentwall_service.dart';
@@ -499,12 +500,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _handleWithdraw() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) { _snack('You must be logged in.', error: true); return; }
+
     final amount = int.tryParse(_withdrawAmountCtrl.text.trim());
     if (amount == null || amount < 100) { _snack('Minimum withdrawal is 100 J', error: true); return; }
     if (_withdrawAccountCtrl.text.trim().isEmpty) { _snack('Enter your account/mobile number', error: true); return; }
     if (_withdrawTitleCtrl.text.trim().isEmpty) { _snack('Enter your account name', error: true); return; }
 
     setState(() => _isLoading = true);
+
+    // Check user balance before allowing withdrawal
+    // 1 J Coin = 100 points, so convert amount to points
+    final requiredPoints = amount * 100;
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final currentPoints = (userDoc.data()?['points'] ?? 0) as int;
+
+    if (currentPoints < requiredPoints) {
+      final availableCoins = (currentPoints / 100).floor();
+      setState(() => _isLoading = false);
+      _snack('Insufficient balance. You have $availableCoins J Coins available.', error: true);
+      return;
+    }
 
     final result = await _service.submitWithdrawRequest(
       coinsAmount: amount,

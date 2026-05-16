@@ -207,12 +207,13 @@ class _DepositCardState extends State<_DepositCard> {
     try {
       final userId = widget.data['userId'];
       final coins = widget.data['coins'] as int;
+      final pointsToCredit = coins * 100; // 1 J Coin = 100 points
 
-      // Credit coins to user
+      // Credit points to user
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .update({'points': FieldValue.increment(coins)});
+          .update({'points': FieldValue.increment(pointsToCredit)});
 
       // Update deposit status
       await FirebaseFirestore.instance
@@ -550,12 +551,13 @@ class _WithdrawalCardState extends State<_WithdrawalCard> {
     try {
       final userId = widget.data['userId'];
       final coinsAmount = widget.data['coinsAmount'] as int;
+      final pointsToRefund = coinsAmount * 100; // 1 J Coin = 100 points
 
-      // Refund coins to user
+      // Refund points to user
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .update({'points': FieldValue.increment(coinsAmount)});
+          .update({'points': FieldValue.increment(pointsToRefund)});
 
       await FirebaseFirestore.instance
           .collection('withdrawal_requests')
