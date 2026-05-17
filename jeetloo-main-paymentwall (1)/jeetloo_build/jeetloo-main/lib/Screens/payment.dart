@@ -511,10 +511,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     setState(() => _isLoading = true);
 
     // Check user balance before allowing withdrawal
-    // 1 J Coin = 100 points, so convert amount to points
+    // 1 J Coin = 100 points
     final requiredPoints = amount * 100;
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    final currentPoints = (userDoc.data()?['points'] ?? 0) as int;
+    final rawPoints = userDoc.data()?['points'];
+    final currentPoints = rawPoints is int ? rawPoints : (rawPoints as num?)?.toInt() ?? 0;
 
     if (currentPoints < requiredPoints) {
       final availableCoins = (currentPoints / 100).floor();
