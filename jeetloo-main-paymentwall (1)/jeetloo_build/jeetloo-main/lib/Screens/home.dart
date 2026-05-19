@@ -613,12 +613,15 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        height: 50,
-        color: Colors.transparent,
-        child: AdWidget(
-          ad: AdmobHelper.getBannerAd()..load(),
-          key: UniqueKey(),
+      bottomNavigationBar: Visibility(
+        visible: false, // Set to true to re-enable ads
+        child: Container(
+          height: 50,
+          color: Colors.transparent,
+          child: AdWidget(
+            ad: AdmobHelper.getBannerAd()..load(),
+            key: UniqueKey(),
+          ),
         ),
       ),
       // sizedBox(height: 50),
