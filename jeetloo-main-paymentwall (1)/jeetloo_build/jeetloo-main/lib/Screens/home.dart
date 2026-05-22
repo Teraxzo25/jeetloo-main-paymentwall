@@ -615,12 +615,11 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
       ),
       bottomNavigationBar: Visibility(
         visible: true, // Set to false to hide ads
-        child: UnityBannerAd(
-          placementId: AdmobHelper.bannerPlacementId,
-          onLoad: (placementId) => print('Banner loaded: $placementId'),
-          onClick: (placementId) => print('Banner clicked: $placementId'),
-          onFailed: (placementId, error, message) =>
-              print('Banner failed: $message'),
+        child: SizedBox(
+          height: 50,
+          child: UnityBannerAd(
+            placementId: AdmobHelper.bannerPlacementId,
+          ),
         ),
       ),
       // sizedBox(height: 50),
