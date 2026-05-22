@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 
 // ─────────────────────────────────────────────────────────────
-// UNITY ADS HELPER — compatible with unity_ads_plugin ^4.0.1
+// UNITY ADS HELPER
 // Game ID: 800000457
 // Banner:       Banner_Android
 // Rewarded:     Rewarded_Android
@@ -15,19 +15,31 @@ class AdmobHelper {
   static const String rewardedPlacementId = 'Rewarded_Android';
   static const String interstitialPlacementId = 'Interstitial_Android';
 
-  static bool _initialized = false;
-
   static Future<void> initialize() async {
-    if (_initialized) return;
     await UnityAds.init(
       gameId: _gameId,
       testMode: false,
-      onComplete: () {
-        _initialized = true;
-        print('Unity Ads initialized');
-      },
-      onFailed: (error, message) =>
-          print('Unity Ads init failed: $error $message'),
+      onComplete: () => print('Unity Ads initialized'),
+      onFailed: (error, message) => print('Unity Ads failed: $message'),
+    );
+  }
+}
+
+// Banner Ad Widget
+class UnityBannerAdWidget extends StatelessWidget {
+  const UnityBannerAdWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 50,
+      child: UnityBannerAd(
+        placementId: AdmobHelper.bannerPlacementId,
+        onLoad: (placementId) => print('Banner loaded'),
+        onClick: (placementId) => print('Banner clicked'),
+        onFailed: (placementId, error, message) =>
+            print('Banner failed: $message'),
+      ),
     );
   }
 }

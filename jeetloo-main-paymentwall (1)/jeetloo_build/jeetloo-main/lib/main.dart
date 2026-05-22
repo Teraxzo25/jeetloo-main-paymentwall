@@ -5,17 +5,15 @@ import 'package:jeetloo/reward_ads/bannerads.dart';
 import 'package:jeetloo/Screens/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:jeetloo/authentication/signup.dart'; // keep if used
-import 'package:jeetloo/Screens/splash.dart'; // keep if used
-import 'package:jeetloo/authentication/login.dart'; // I assume LoginScreen is here
+import 'package:jeetloo/authentication/signup.dart';
+import 'package:jeetloo/Screens/splash.dart';
+import 'package:jeetloo/authentication/login.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase
+  await Firebase.initializeApp();
+  await AdmobHelper.initialize();
 
-  await AdmobHelper.initialize(); // Initialize Unity Ads
-
-  // Check if logged in
   final prefs = await SharedPreferences.getInstance();
   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 

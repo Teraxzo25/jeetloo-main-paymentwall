@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 import 'package:jeetloo/Candle_System/candle_predciation.dart';
 import 'package:jeetloo/Screens/payment.dart';
 import 'package:jeetloo/Screens/admin_panel.dart';
@@ -615,12 +614,7 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
       ),
       bottomNavigationBar: Visibility(
         visible: true, // Set to false to hide ads
-        child: SizedBox(
-          height: 50,
-          child: UnityBannerAd(
-            placementId: AdmobHelper.bannerPlacementId,
-          ),
-        ),
+        child: const UnityBannerAdWidget(),
       ),
       // sizedBox(height: 50),
     );

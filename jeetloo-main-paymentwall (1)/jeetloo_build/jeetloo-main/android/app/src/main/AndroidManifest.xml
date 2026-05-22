@@ -6,11 +6,6 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- ✅ Correct App ID placement -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-1822433308049912~2339479647" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"

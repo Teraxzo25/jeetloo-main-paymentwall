@@ -35,8 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   get: ^4.7.2
-  google_fonts: ^6.1.0
-  google_mobile_ads: ^6.0.0
+  google_fonts: ^6.2.1
   firebase_core: ^4.0.0
   firebase_auth: ^6.0.0
   lottie: ^3.3.1
@@ -47,6 +46,8 @@ dependencies:
   syncfusion_flutter_gauges: ^30.2.7
   crypto: ^3.0.3
   webview_flutter: ^4.7.0
+  http: ^1.2.1
+  unity_ads_plugin: ^4.0.1
 
 dev_dependencies:
   flutter_test:
