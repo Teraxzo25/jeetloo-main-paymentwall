@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 import 'package:jeetloo/Candle_System/candle_predciation.dart';
 import 'package:jeetloo/Screens/payment.dart';
 import 'package:jeetloo/Screens/admin_panel.dart';
@@ -614,14 +614,13 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: false, // Set to true to re-enable ads
-        child: Container(
-          height: 50,
-          color: Colors.transparent,
-          child: AdWidget(
-            ad: AdmobHelper.getBannerAd()..load(),
-            key: UniqueKey(),
-          ),
+        visible: true, // Set to false to hide ads
+        child: UnityBannerAd(
+          placementId: AdmobHelper.bannerPlacementId,
+          onLoad: (placementId) => print('Banner loaded: $placementId'),
+          onClick: (placementId) => print('Banner clicked: $placementId'),
+          onFailed: (placementId, error, message) =>
+              print('Banner failed: $message'),
         ),
       ),
       // sizedBox(height: 50),
