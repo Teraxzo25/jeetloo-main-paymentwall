@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 
 // ─────────────────────────────────────────────────────────────
-// UNITY ADS HELPER
+// UNITY ADS — compatible with unity_ads_plugin ^0.3.30
 // Game ID: 800000457
-// Banner:       Banner_Android
-// Rewarded:     Rewarded_Android
-// Interstitial: Interstitial_Android
 // ─────────────────────────────────────────────────────────────
 
 class AdmobHelper {
@@ -25,10 +22,14 @@ class AdmobHelper {
   }
 }
 
-// Banner Ad Widget
-class UnityBannerAdWidget extends StatelessWidget {
+class UnityBannerAdWidget extends StatefulWidget {
   const UnityBannerAdWidget({Key? key}) : super(key: key);
 
+  @override
+  State<UnityBannerAdWidget> createState() => _UnityBannerAdWidgetState();
+}
+
+class _UnityBannerAdWidgetState extends State<UnityBannerAdWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
