@@ -22,7 +22,6 @@ class _PaymentwallWebViewState extends State<PaymentwallWebView> {
   late final WebViewController _controller;
   bool _isLoading = true;
   bool _hasError = false;
-  String _errorMessage = '';
 
   @override
   void initState() {
@@ -36,11 +35,24 @@ class _PaymentwallWebViewState extends State<PaymentwallWebView> {
             _hasError = false;
           }),
           onPageFinished: (_) => setState(() => _isLoading = false),
-          onWebResourceError: (error) => setState(() {
-            _isLoading = false;
-            _hasError = true;
-            _errorMessage = error.description;
-          }),
+          onWebResourceError: (error) {
+            // Ignore sub-resource errors, only catch main frame errors
+            if (error.isForMainFrame == true) {
+              setState(() {
+                _isLoading = false;
+                _hasError = true;
+              });
+            }
+          },
+          onHttpError: (error) {
+            if (error.response?.statusCode != null &&
+                error.response!.statusCode! >= 400) {
+              setState(() {
+                _isLoading = false;
+                _hasError = true;
+              });
+            }
+          },
           onNavigationRequest: (request) {
             if (request.url.contains('payment-success')) {
               Navigator.pop(context, 'success');
@@ -73,49 +85,50 @@ class _PaymentwallWebViewState extends State<PaymentwallWebView> {
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-            ),
-          if (_hasError)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.wifi_off, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Failed to load payment page',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _errorMessage,
-                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() => _hasError = false);
-                        _controller.reload();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4CAF50),
-                      ),
-                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
+      body: Stack(children: [
+        if (!_hasError) WebViewWidget(controller: _controller),
+        if (_isLoading && !_hasError)
+          const Center(
+            child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+          ),
+        if (_hasError)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.payment, color: Colors.orange, size: 64),
+                const SizedBox(height: 16),
+                const Text(
+                  'Payment Unavailable',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
-              ),
+                const SizedBox(height: 12),
+                Text(
+                  'Card payments are currently under review and will be available soon.\n\nPlease use JazzCash or Easypaisa to deposit for now.',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, 'cancelled'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Go Back',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ]),
             ),
-        ],
-      ),
+          ),
+      ]),
     );
   }
 }
