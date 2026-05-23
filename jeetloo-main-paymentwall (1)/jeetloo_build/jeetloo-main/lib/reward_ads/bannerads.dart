@@ -12,12 +12,16 @@ class AdmobHelper {
   static const String rewardedPlacementId = 'Rewarded_Android';
   static const String interstitialPlacementId = 'Interstitial_Android';
 
+  // ⚠️ testMode: true  → use while developing/testing (shows test ads on any device)
+  // ⚠️ testMode: false → use only when releasing to production on Google Play
+  static const bool _testMode = true;
+
   static Future<void> initialize() async {
     await UnityAds.init(
       gameId: _gameId,
-      testMode: false,
-      onComplete: () => print('Unity Ads initialized'),
-      onFailed: (error, message) => print('Unity Ads failed: $message'),
+      testMode: _testMode,
+      onComplete: () => print('✅ Unity Ads initialized (testMode: $_testMode)'),
+      onFailed: (error, message) => print('❌ Unity Ads init failed: $message'),
     );
   }
 }

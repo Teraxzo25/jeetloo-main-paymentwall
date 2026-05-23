@@ -4,18 +4,16 @@ import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 
 // ─────────────────────────────────────────────────────────────
 // REWARDED ADS CONTROLLER — powered by Unity Ads
-// Replaces the old google_mobile_ads implementation.
-// home.dart uses this with NO changes needed there.
+// NOTE: Unity Ads is already initialized in main.dart via
+// AdmobHelper.initialize(). This controller only loads & shows.
 // Game ID: 800000457
 // ─────────────────────────────────────────────────────────────
 
 class RewardedAdsController extends GetxController {
-  // Observable variables (same API as before)
   var rewardPoints = 0.obs;
   var isAdLoading = false.obs;
   var isAdReady = false.obs;
 
-  // Callback for when reward is earned
   Function(int points)? onRewardEarnedCallback;
 
   static const String _rewardedPlacementId = 'Rewarded_Android';
@@ -23,22 +21,8 @@ class RewardedAdsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _initAndLoad();
-  }
-
-  /// Initialise Unity Ads then load the rewarded placement
-  Future<void> _initAndLoad() async {
-    await UnityAds.init(
-      gameId: '800000457',
-      testMode: false, // set to true while testing
-      onComplete: () {
-        print('✅ Unity Ads initialised');
-        loadAd();
-      },
-      onFailed: (error, message) {
-        print('❌ Unity Ads init failed: $message');
-      },
-    );
+    // Small delay to ensure Unity Ads has finished initializing in main.dart
+    Future.delayed(const Duration(seconds: 2), () => loadAd());
   }
 
   /// Load a rewarded ad
@@ -54,7 +38,7 @@ class RewardedAdsController extends GetxController {
         isAdReady.value = true;
       },
       onFailed: (placementId, error, message) {
-        print('❌ Rewarded ad failed to load: $message');
+        print('❌ Rewarded ad failed to load [$error]: $message');
         isAdLoading.value = false;
         isAdReady.value = false;
 
@@ -71,7 +55,7 @@ class RewardedAdsController extends GetxController {
     if (!isAdReady.value) {
       Get.snackbar(
         'Ad Not Ready',
-        'Please wait for the ad to load',
+        'Please wait a moment and try again',
         backgroundColor: Colors.orange,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -79,29 +63,16 @@ class RewardedAdsController extends GetxController {
       return;
     }
 
-    isAdReady.value = false; // mark as used while showing
+    isAdReady.value = false;
 
     UnityAds.showVideoAd(
       placementId: _rewardedPlacementId,
       onComplete: (placementId) {
-        print('🎉 Rewarded ad completed: $placementId');
-        const int rewardAmount = 10; // adjust points per ad view as needed
+        print('🎉 Rewarded ad completed');
+        const int rewardAmount = 10;
         rewardPoints.value += rewardAmount;
-
-        if (onRewardEarnedCallback != null) {
-          onRewardEarnedCallback!(rewardAmount);
-        }
-
-        Get.snackbar(
-          'Reward Earned!',
-          'You earned $rewardAmount points!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
-        );
-
-        loadAd(); // Preload next ad
+        onRewardEarnedCallback?.call(rewardAmount);
+        loadAd(); // preload next
       },
       onSkipped: (placementId) {
         print('⏭ Rewarded ad skipped');
@@ -112,7 +83,7 @@ class RewardedAdsController extends GetxController {
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
         );
-        loadAd(); // Reload for next attempt
+        loadAd();
       },
       onFailed: (placementId, error, message) {
         print('❌ Rewarded ad failed to show: $message');
@@ -130,20 +101,11 @@ class RewardedAdsController extends GetxController {
     );
   }
 
-  /// Assign the callback from the UI (called by home.dart)
   void setOnRewardEarnedCallback(Function(int points) callback) {
     onRewardEarnedCallback = callback;
   }
 
-  /// Optional: Reset reward points
   void resetPoints() {
     rewardPoints.value = 0;
-    Get.snackbar(
-      'Points Reset',
-      'Your reward points have been reset to 0',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
   }
 }
