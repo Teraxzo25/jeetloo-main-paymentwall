@@ -1,34 +1,44 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:unity_ads_plugin/unity_ads_plugin.dart';
+
+// ─────────────────────────────────────────────────────────────
+// REWARDED ADS CONTROLLER — powered by Unity Ads
+// Replaces the old google_mobile_ads implementation.
+// home.dart uses this with NO changes needed there.
+// Game ID: 800000457
+// ─────────────────────────────────────────────────────────────
 
 class RewardedAdsController extends GetxController {
-  // Observable variables
+  // Observable variables (same API as before)
   var rewardPoints = 0.obs;
   var isAdLoading = false.obs;
   var isAdReady = false.obs;
 
-  RewardedAd? _rewardedAd;
-
   // Callback for when reward is earned
-  late Function(int points)? onRewardEarnedCallback;
+  Function(int points)? onRewardEarnedCallback;
 
-  // Ad unit IDs (replace with real ones for production)
-  final String adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917' // Android test ad
-      : 'ca-app-pub-3940256099942544/1712485313'; // iOS test ad
+  static const String _rewardedPlacementId = 'Rewarded_Android';
 
   @override
   void onInit() {
     super.onInit();
-    loadAd();
+    _initAndLoad();
   }
 
-  @override
-  void onClose() {
-    _rewardedAd?.dispose();
-    super.onClose();
+  /// Initialise Unity Ads then load the rewarded placement
+  Future<void> _initAndLoad() async {
+    await UnityAds.init(
+      gameId: '800000457',
+      testMode: false, // set to true while testing
+      onComplete: () {
+        print('✅ Unity Ads initialised');
+        loadAd();
+      },
+      onFailed: (error, message) {
+        print('❌ Unity Ads init failed: $message');
+      },
+    );
   }
 
   /// Load a rewarded ad
@@ -36,60 +46,29 @@ class RewardedAdsController extends GetxController {
     isAdLoading.value = true;
     isAdReady.value = false;
 
-    RewardedAd.load(
-      adUnitId: adUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('✅ Rewarded ad loaded successfully');
+    UnityAds.load(
+      placementId: _rewardedPlacementId,
+      onComplete: (placementId) {
+        print('✅ Rewarded ad loaded: $placementId');
+        isAdLoading.value = false;
+        isAdReady.value = true;
+      },
+      onFailed: (placementId, error, message) {
+        print('❌ Rewarded ad failed to load: $message');
+        isAdLoading.value = false;
+        isAdReady.value = false;
 
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-              print('Ad showing full screen');
-            },
-            onAdImpression: (ad) {
-              print('Ad impression recorded');
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              print('❌ Ad failed to show: $error');
-              ad.dispose();
-              _rewardedAd = null;
-              loadAd();
-            },
-            onAdDismissedFullScreenContent: (ad) {
-              print('Ad dismissed');
-              ad.dispose();
-              _rewardedAd = null;
-              loadAd(); // Preload next ad
-            },
-            onAdClicked: (ad) {
-              print('Ad clicked');
-            },
-          );
-
-          _rewardedAd = ad;
-          isAdLoading.value = false;
-          isAdReady.value = true;
-        },
-        onAdFailedToLoad: (LoadAdError error) {
-          print('❌ RewardedAd failed to load: $error');
-          isAdLoading.value = false;
-          isAdReady.value = false;
-
-          // Retry after 30 seconds
-          Future.delayed(const Duration(seconds: 30), () {
-            if (!isAdReady.value) {
-              loadAd();
-            }
-          });
-        },
-      ),
+        // Retry after 30 seconds
+        Future.delayed(const Duration(seconds: 30), () {
+          if (!isAdReady.value) loadAd();
+        });
+      },
     );
   }
 
   /// Show rewarded ad
   void showAd() {
-    if (_rewardedAd == null) {
+    if (!isAdReady.value) {
       Get.snackbar(
         'Ad Not Ready',
         'Please wait for the ad to load',
@@ -100,14 +79,15 @@ class RewardedAdsController extends GetxController {
       return;
     }
 
-    _rewardedAd!.show(
-      onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
-        int rewardAmount = rewardItem.amount.toInt();
+    isAdReady.value = false; // mark as used while showing
+
+    UnityAds.showVideoAd(
+      placementId: _rewardedPlacementId,
+      onComplete: (placementId) {
+        print('🎉 Rewarded ad completed: $placementId');
+        const int rewardAmount = 10; // adjust points per ad view as needed
         rewardPoints.value += rewardAmount;
 
-        print('🎉 Reward earned: $rewardAmount');
-
-        // ✅ Trigger the callback
         if (onRewardEarnedCallback != null) {
           onRewardEarnedCallback!(rewardAmount);
         }
@@ -120,16 +100,42 @@ class RewardedAdsController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
           duration: const Duration(seconds: 3),
         );
+
+        loadAd(); // Preload next ad
       },
+      onSkipped: (placementId) {
+        print('⏭ Rewarded ad skipped');
+        Get.snackbar(
+          'Ad Skipped',
+          'Watch the full ad to earn points',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        loadAd(); // Reload for next attempt
+      },
+      onFailed: (placementId, error, message) {
+        print('❌ Rewarded ad failed to show: $message');
+        Get.snackbar(
+          'Ad Error',
+          'Something went wrong. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        loadAd();
+      },
+      onStart: (placementId) => print('▶ Ad started'),
+      onClick: (placementId) => print('👆 Ad clicked'),
     );
   }
 
-  /// Assign the callback from the UI
+  /// Assign the callback from the UI (called by home.dart)
   void setOnRewardEarnedCallback(Function(int points) callback) {
     onRewardEarnedCallback = callback;
   }
 
-  /// Optional: Reset reward points (UI use only)
+  /// Optional: Reset reward points
   void resetPoints() {
     rewardPoints.value = 0;
     Get.snackbar(
