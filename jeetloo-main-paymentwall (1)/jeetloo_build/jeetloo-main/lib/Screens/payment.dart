@@ -3,11 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jeetloo/Screens/paymentwall_service.dart';
-import 'package:jeetloo/Screens/paymentwall_webview.dart';
 
 // ─────────────────────────────────────────────────────────────
 // PAYMENT SCREEN
-// JazzCash (manual) + Easypaisa (manual) + Paymentwall (cards)
+// JazzCash (manual) + Easypaisa (manual) — Active
+// Paymentwall (cards) — Hidden until account is approved
 // ─────────────────────────────────────────────────────────────
 
 class PaymentScreen extends StatefulWidget {
@@ -21,7 +21,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   int _tab = 0;
   String _depositMethod = 'JazzCash';
   String _withdrawMethod = 'JazzCash';
-  int _pwPackageIndex = 0;
   int _manualPackageIndex = 0;
   bool _isLoading = false;
 
@@ -106,129 +105,95 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Deposit J Coins',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+
+          // ── "Coming Soon" notice for card payments ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.amber.withOpacity(0.4)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.info_outline, color: Colors.amber, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Card payments coming soon. Please use JazzCash or Easypaisa.',
+                  style: TextStyle(color: Colors.amber[200], fontSize: 12),
+                ),
+              ),
+            ]),
+          ),
           const SizedBox(height: 20),
 
           const Text('Select Method',
               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
 
+          // Only show JazzCash and Easypaisa — Paymentwall hidden
           _methodTile('JazzCash', Icons.phone_android, const Color(0xFFFF6B35), true),
           _methodTile('Easypaisa', Icons.account_balance_wallet, _green, true),
-          _methodTile('Paymentwall', Icons.credit_card, const Color(0xFF3F51B5), true),
 
           const SizedBox(height: 20),
 
-          // ── JazzCash / Easypaisa manual flow ──
-          if (_depositMethod == 'JazzCash' || _depositMethod == 'Easypaisa') ...[
-            const Text('Select Package',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
+          const Text('Select Package',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
 
-            ...PaymentwallService.coinPackages.asMap().entries.map((e) {
-              final i = e.key;
-              final pkg = e.value;
-              final selected = _manualPackageIndex == i;
-              return GestureDetector(
-                onTap: () => setState(() => _manualPackageIndex = i),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: selected ? _green.withOpacity(0.1) : _bg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: selected ? _green : Colors.grey[700]!, width: selected ? 2 : 1),
-                  ),
-                  child: Row(children: [
-                    Container(
-                      width: 36, height: 36,
-                      decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
-                      child: const Center(child: Text('J', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(pkg['label'] as String,
-                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
-                      Text('\$${(pkg['usd'] as double).toStringAsFixed(2)} USD',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 13)),
-                    ])),
-                    if (selected) const Icon(Icons.check_circle, color: _green),
-                  ]),
+          ...PaymentwallService.coinPackages.asMap().entries.map((e) {
+            final i = e.key;
+            final pkg = e.value;
+            final selected = _manualPackageIndex == i;
+            return GestureDetector(
+              onTap: () => setState(() => _manualPackageIndex = i),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: selected ? _green.withOpacity(0.1) : _bg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: selected ? _green : Colors.grey[700]!, width: selected ? 2 : 1),
                 ),
-              );
-            }).toList(),
-
-            const SizedBox(height: 20),
-
-            // Send to number instruction box
-            _instructionBox(),
-            const SizedBox(height: 20),
-
-            _input(_senderMobileCtrl, 'Your Mobile Number', '03001234567', TextInputType.phone),
-            const SizedBox(height: 16),
-            _input(_txnIdCtrl, 'Transaction ID', 'Enter ID from your payment receipt', TextInputType.text),
-            const SizedBox(height: 20),
-
-            _actionBtn('Submit Deposit Request', _handleManualDeposit),
-            const SizedBox(height: 12),
-            Center(
-              child: Text(
-                'Coins credited within 1 hour after verification',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                textAlign: TextAlign.center,
+                child: Row(children: [
+                  Container(
+                    width: 36, height: 36,
+                    decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
+                    child: const Center(child: Text('J', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(pkg['label'] as String,
+                        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                    Text('\$${(pkg['usd'] as double).toStringAsFixed(2)} USD',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                  ])),
+                  if (selected) const Icon(Icons.check_circle, color: _green),
+                ]),
               ),
+            );
+          }).toList(),
+
+          const SizedBox(height: 20),
+
+          _instructionBox(),
+          const SizedBox(height: 20),
+
+          _input(_senderMobileCtrl, 'Your Mobile Number', '03001234567', TextInputType.phone),
+          const SizedBox(height: 16),
+          _input(_txnIdCtrl, 'Transaction ID', 'Enter ID from your payment receipt', TextInputType.text),
+          const SizedBox(height: 20),
+
+          _actionBtn('Submit Deposit Request', _handleManualDeposit),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              'Coins credited within 1 hour after verification',
+              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              textAlign: TextAlign.center,
             ),
-          ],
-
-          // ── Paymentwall card flow ──
-          if (_depositMethod == 'Paymentwall') ...[
-            const Text('Select Package',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-
-            ...PaymentwallService.coinPackages.asMap().entries.map((e) {
-              final i = e.key;
-              final pkg = e.value;
-              final selected = _pwPackageIndex == i;
-              return GestureDetector(
-                onTap: () => setState(() => _pwPackageIndex = i),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: selected ? _green.withOpacity(0.1) : _bg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: selected ? _green : Colors.grey[700]!, width: selected ? 2 : 1),
-                  ),
-                  child: Row(children: [
-                    Container(
-                      width: 36, height: 36,
-                      decoration: const BoxDecoration(color: Color(0xFF3F51B5), shape: BoxShape.circle),
-                      child: const Center(child: Text('J', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(pkg['label'] as String,
-                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
-                      Text('\$${(pkg['usd'] as double).toStringAsFixed(2)} USD',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 13)),
-                    ])),
-                    if (selected) const Icon(Icons.check_circle, color: _green),
-                  ]),
-                ),
-              );
-            }).toList(),
-
-            const SizedBox(height: 8),
-            Text('🔒 Secured by Paymentwall — supports cards & mobile billing',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-            const SizedBox(height: 20),
-            _actionBtn('Proceed to Payment', _handlePaymentwall),
-            const SizedBox(height: 12),
-            Center(
-              child: Text('Coins credited within 5 minutes after confirmation',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12), textAlign: TextAlign.center),
-            ),
-          ],
+          ),
         ]),
       ),
     );
@@ -465,40 +430,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _dialog(result.isSuccess, result.message);
   }
 
-  Future<void> _handlePaymentwall() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) { _snack('You must be logged in.', error: true); return; }
-
-    final pkg = PaymentwallService.coinPackages[_pwPackageIndex];
-    final coins = pkg['coins'] as int;
-    final usd = pkg['usd'] as double;
-
-    setState(() => _isLoading = true);
-
-    final url = _service.generateWidgetUrl(
-      userId: user.uid,
-      userEmail: user.email ?? '',
-      coins: coins,
-      amountUsd: usd,
-    );
-    await _service.savePendingDeposit(userId: user.uid, coins: coins, amountUsd: usd);
-
-    setState(() => _isLoading = false);
-
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PaymentwallWebView(paymentUrl: url, coins: coins, amountUsd: usd),
-      ),
-    );
-
-    if (result == 'success') {
-      _dialog(true, 'Payment successful! Your $coins J Coins will be credited within 5 minutes.');
-    } else if (result == 'failure') {
-      _dialog(false, 'Payment failed. Please try again.');
-    }
-  }
-
   Future<void> _handleWithdraw() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) { _snack('You must be logged in.', error: true); return; }
@@ -510,8 +441,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     setState(() => _isLoading = true);
 
-    // Check user balance before allowing withdrawal
-    // 1 J Coin = 100 points
     final requiredPoints = amount * 100;
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     final rawPoints = userDoc.data()?['points'];
