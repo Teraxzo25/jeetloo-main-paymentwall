@@ -787,7 +787,7 @@ class _JeetLooHomeScreenState extends State<JeetLooHomeScreen>
       children: [
         Obx(() {
           final isReady = controller.isAdReady.value;
-          final isLoading = controller.isAdLoading.value;
+          final isLoading = !controller.isAdReady.value;
 
           return Column(
             children: [
