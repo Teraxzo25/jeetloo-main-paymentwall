@@ -23,13 +23,13 @@ jobs:
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
           flutter pub upgrade
 
-      - name: Build APK
+      - name: Build AAB
         run: |
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
-          flutter build apk --release
+          flutter build appbundle --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/build/app/outputs/flutter-apk/app-release.apk"
+          path: "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/build/app/outputs/bundle/release/app-release.aab"
