@@ -25,7 +25,7 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/android/app/jeetloo.jks"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\r\n ' | base64 --decode > "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/android/app/jeetloo.jks"
 
       - name: Build AAB
         env:
@@ -34,10 +34,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
-          flutter build appbundle --release \
-            --dart-define=KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD \
-            --dart-define=KEY_ALIAS=$KEY_ALIAS \
-            --dart-define=KEY_PASSWORD=$KEY_PASSWORD
+          flutter build appbundle --release
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
