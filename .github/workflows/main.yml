@@ -1,4 +1,4 @@
-name: Build APK
+name: Build AAB
 
 on:
   push:
@@ -23,12 +23,23 @@ jobs:
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
           flutter pub upgrade
 
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/android/app/jeetloo.jks"
+
       - name: Build AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
-          flutter build appbundle --release
+          flutter build appbundle --release \
+            --dart-define=KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD \
+            --dart-define=KEY_ALIAS=$KEY_ALIAS \
+            --dart-define=KEY_PASSWORD=$KEY_PASSWORD
 
-      - name: Upload APK
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: app-release
