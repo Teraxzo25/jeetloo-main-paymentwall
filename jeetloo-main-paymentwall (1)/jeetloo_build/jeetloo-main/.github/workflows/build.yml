@@ -1,4 +1,4 @@
-name: Build APK
+name: Build AAB
 
 on:
   push:
@@ -11,25 +11,25 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.41.9'
 
       - name: Install dependencies
         run: |
-          cd jeetloo_build/jeetloo-main
-          flutter pub get
+          cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
+          flutter pub upgrade
 
-      - name: Build APK
+      - name: Build AAB
         run: |
-          cd jeetloo_build/jeetloo-main
-          flutter build apk --release
+          cd "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main"
+          flutter build appbundle --release
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: jeetloo_build/jeetloo-main/build/app/outputs/flutter-apk/app-release.apk
+          path: "jeetloo-main-paymentwall (1)/jeetloo_build/jeetloo-main/build/app/outputs/bundle/release/app-release.aab"
